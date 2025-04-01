@@ -26,8 +26,8 @@ jobs:
 
       - name: Set up Docker build variables
         run: |
-          ECR_REGISTRY=***.dkr.ecr.us-east-1.amazonaws.com
-          ECR_REPOSITORY=***
+          ECR_REGISTRY=242201292438.dkr.ecr.us-east-1.amazonaws.com
+          ECR_REPOSITORY=01-mcoakley-app
           IMAGE_TAG=latest
           echo "ECR_REGISTRY=$ECR_REGISTRY" >> $GITHUB_ENV
           echo "ECR_REPOSITORY=$ECR_REPOSITORY" >> $GITHUB_ENV
@@ -42,7 +42,7 @@ jobs:
         run: docker push $IMAGE_URI
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.11.2
         with:
           image-ref: ${{ env.IMAGE_URI }}
           format: 'table'
