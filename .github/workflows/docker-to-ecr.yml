@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -42,7 +43,7 @@ jobs:
         run: docker push $IMAGE_URI
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@v0.11.2
+        uses: aquasecurity/trivy-action@v0.18.0
         with:
           image-ref: ${{ env.IMAGE_URI }}
           format: 'table'
