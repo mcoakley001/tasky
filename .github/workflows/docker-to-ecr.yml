@@ -1,7 +1,7 @@
 name: Build and Push Docker Image to ECR
 
 on:
-  workflow_dispatch:  # Only runs when triggered manually
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1
@@ -25,13 +25,31 @@ jobs:
       - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push Docker image to ECR
+      - name: Build Docker image
         env:
           ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
           IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "Pushing image to: $IMAGE_URI"
+          echo "Building image: $IMAGE_URI"
           docker build -t $IMAGE_URI .
+
+      - name: Scan Docker image with Trivy
+        uses: aquasecurity/trivy-action@v0.12.0
+        with:
+          image-ref: ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          format: table
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: Push Docker image to ECR
+        env:
+          ECR_REGISTRY: ${{ secrets.ECR_REGISTRY }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+        run: |
+          IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "Pushing image: $IMAGE_URI"
           docker push $IMAGE_URI
